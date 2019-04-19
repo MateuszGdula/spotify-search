@@ -16,7 +16,12 @@
                 <li>Total tracks: {{ totalTracks }}</li> 
             </ul>
 
-            <h3 class="listItem__details-header" @click="getAlbumDetails(); showOrHideDetails()">
+            <h3 class="listItem__details-header" 
+                tabindex="0"  
+                @click="getAlbumDetails(); showOrHideDetails()"
+                @keyup.enter="$refs.detailsHeader.click()"
+                ref="detailsHeader"
+            >
                 {{ displayDetails && albumDetailsLoaded ? "- Less" : "+ More" }} information
             </h3>
 
