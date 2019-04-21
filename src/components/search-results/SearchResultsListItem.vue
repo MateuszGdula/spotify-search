@@ -147,7 +147,6 @@ export default {
             })
             .then(res => {
                 //save album informations to component data, mark album data as loaded
-                console.log(res.data)
                 this.details.popularity = res.data.popularity.toString();
                 this.details.tracks = res.data.tracks.items;
 
