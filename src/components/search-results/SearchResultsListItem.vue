@@ -33,10 +33,28 @@
                 </ul>
 
                 <h4 class="listItem__tracks-header">Tracks list:</h4>
+
                 <ul class="listItem__tracks-list">
+
                     <li v-for="(track, i) in details.tracks" :key="track.uri">
-                        {{ i+1 }}. {{ track.name }}<span> {{ msToMinAndSec(track.duration_ms) }}</span>
+
+                        <div class="listItem__track-name">
+                            {{ i+1 }}. {{ track.name }}<span> {{ msToMinAndSec(track.duration_ms) }}</span>
+                        </div>
+
+                        <div v-if= "track.preview_url" class="listItem__audio-wrapper">
+
+                            <div class="listItem__play-btn" @click="playPreview" />
+                            <div class="listItem__pause-btn" @click="pausePreview" />
+
+                            <audio class="listItem__preview">
+                                <source :src="track.preview_url">
+                            </audio>
+
+                        </div>
+
                     </li>
+
                 </ul>
 
             </div>
@@ -59,7 +77,9 @@ export default {
                 tracks: []
             },
             displayDetails: false,
-            albumDetailsLoaded: false
+            albumDetailsLoaded: false,
+            currentPreview : null,
+            currentPreviewPlayBtn: null,
         }
     },
     props: {
@@ -127,7 +147,7 @@ export default {
             })
             .then(res => {
                 //save album informations to component data, mark album data as loaded
-
+                console.log(res.data)
                 this.details.popularity = res.data.popularity.toString();
                 this.details.tracks = res.data.tracks.items;
 
@@ -151,7 +171,36 @@ export default {
             let min = Math.floor(ms / 60000);
             let sec = ((ms % 60000) / 1000).toFixed(0);
             return min + ":" + (sec < 10 ? '0' : '') + sec;
-        }
+        },
+        playPreview(e) {
+            //stop currently played preview, play the new preview audio and mark the play button
+            const audioWrapper = e.target.parentNode;
+            const newPreview = audioWrapper.querySelector("audio");
+            const playBtn = audioWrapper.querySelector(".listItem__play-btn");
+
+            if(this.currentPreview !== null && this.currentPreviewPlayBtn !== null) {
+                this.currentPreview.pause();
+                this.currentPreviewPlayBtn.style.backgroundColor = "";
+            }
+
+            playBtn.style.backgroundColor = "#3a38d2";
+
+            //the spotify preview lasts 30 sec 
+            setTimeout(() => {
+                playBtn.style.backgroundColor = "";
+            }, 30000);
+
+            this.currentPreview = newPreview;
+            this.currentPreviewPlayBtn = playBtn;
+            newPreview.play();
+        },
+        pausePreview(e) {
+            //pause preview audio and unmark the play button;
+            if(this.currentPreview !== null && this.currentPreviewPlayBtn !== null) {
+                this.currentPreview.pause();
+                this.currentPreviewPlayBtn.style.backgroundColor = "";
+            }
+        },
     }
 }
 </script>
@@ -236,8 +285,17 @@ export default {
 
     .listItem__tracks-list {
         list-style: none;
-        @media (max-width: 600px){
-            text-align: center;
+
+        li {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            flex-direction: column;
+            justify-content: flex-start;
+
+            @media (max-width: 600px){
+                align-items: center;
+            }
         }
 
         span {
@@ -245,6 +303,29 @@ export default {
             font-size: 13px;
             font-style: italic;
         }
+    }
+
+    .listItem__play-btn,
+    .listItem__pause-btn {
+        width: 44px;
+        height: 44px;
+        display: inline-block;
+        border-radius: 50%;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 60%;
+
+        &:hover {
+            background-color: #3a38d2;
+        }
+    }
+
+    .listItem__play-btn {
+        background-image: url("../../assets/play.svg")
+    }
+
+    .listItem__pause-btn {
+        background-image: url("../../assets/pause.svg")
     }
 
 </style>
