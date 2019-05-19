@@ -5,6 +5,8 @@
     <h1 class="appHeader">Spotify albums search</h1>
     <Form/>
     <SearchResults/>
+    <ArrowToTop />
+    <RedirectionPopUp v-if="state.displayRedirection" :info="'Redirecting to Spotify Authorization'"/>
 
   </div>
   
@@ -12,15 +14,19 @@
 
 
 <script>
-import Form from './components/form/Form'
-import SearchResults from './components/search-results/SearchResults'
+import Form from './components/form/Form';
+import SearchResults from './components/search-results/SearchResults';
+import ArrowToTop from './components/arrow-to-top/ArrowToTop';
+import RedirectionPopUp from './components/redirection-pop-up/RedirectionPopUp';
 import GlobalStore from './GlobalStore';
 
 export default {
   name: 'App',
   components: {
     Form,
-    SearchResults
+    SearchResults,
+    ArrowToTop,
+    RedirectionPopUp
   },
   data() {
     return {
@@ -28,8 +34,8 @@ export default {
     }
   },
   methods: {
+    //render next albums when scroll position is on the bottom of the page
     renderAlbums() {
-      //render next albums when scroll is on the bottom of page
       (Math.floor(window.innerHeight + window.scrollY) + 1) >= document.body.offsetHeight && GlobalStore.renderAlbums();
     }
   },
@@ -43,7 +49,6 @@ export default {
 }
 </script>
 
-
 <style lang="scss" scoped>
 
   #app {
@@ -56,5 +61,4 @@ export default {
       padding: 0 10px;
     }
   }
-
 </style>

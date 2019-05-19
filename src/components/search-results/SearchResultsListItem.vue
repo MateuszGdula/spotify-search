@@ -16,70 +16,46 @@
                 <li>Total tracks: {{ totalTracks }}</li> 
             </ul>
 
-            <h3 class="listItem__details-header" 
+            <h3 
+                class="listItem__details-header"
                 tabindex="0"  
-                @click="getAlbumDetails(); showOrHideDetails()"
+                @click="getAlbumDetails(); displayDetails = !displayDetails"
                 @keyup.enter="$refs.detailsHeader.click()"
                 ref="detailsHeader"
             >
-                {{ displayDetails && albumDetailsLoaded ? "- Less" : "+ More" }} information
+                {{ displayDetails && albumDetailsLoaded ? "Less" : "More" }} information
+                <div 
+                    class="listItem__header-arrow" 
+                    :class="{'open': displayDetails && albumDetailsLoaded}"
+                />
             </h3>
-
-            <div v-show="displayDetails && albumDetailsLoaded" class="listItem__details-wrapper">
-
-                <ul class="listItem__details">
-                    <li>Popularity: {{ details.popularity }}</li>
-                    <li>Total time: {{ msToMinAndSec(albumTotalTime) }}</li>
-                </ul>
-
-                <h4 class="listItem__tracks-header">Tracks list:</h4>
-
-                <ul class="listItem__tracks-list">
-
-                    <li v-for="(track, i) in details.tracks" :key="track.uri">
-
-                        <div class="listItem__track-name">
-                            {{ i+1 }}. {{ track.name }}<span> {{ msToMinAndSec(track.duration_ms) }}</span>
-                        </div>
-
-                        <div v-if= "track.preview_url" class="listItem__audio-wrapper">
-
-                            <div class="listItem__play-btn" @click="playPreview" />
-                            <div class="listItem__pause-btn" @click="pausePreview" />
-
-                            <audio class="listItem__preview">
-                                <source :src="track.preview_url">
-                            </audio>
-
-                        </div>
-
-                    </li>
-
-                </ul>
-
-            </div>
+            <ListItemDetails 
+                v-if="albumDetailsLoaded"
+                :displayDetails="displayDetails" 
+                :popularity="popularity"
+                :tracks="tracks"
+            />
         </div>
     </div>
-
 </template>
 
 <script>
 import Axios from 'axios';
+import ListItemDetails from './ListItemDetails';
 
 //SearchResultsListItem is a private component of the SearchResults and it doesn't make use of GlobalStore;
 
 export default {
     name: "SearchResultsListItem",
+    components: {
+        ListItemDetails
+    },
     data(){
         return {
-            details: {
-                pupularity: 0,
-                tracks: []
-            },
             displayDetails: false,
             albumDetailsLoaded: false,
-            currentPreview : null,
-            currentPreviewPlayBtn: null,
+            pupularity: "0",
+            tracks: []
         }
     },
     props: {
@@ -122,16 +98,6 @@ export default {
 
             return authors;
         },
-        albumTotalTime() {
-            //sum the tracks duration time
-            let totalTime = 0;
-
-            this.details.tracks.forEach(function(track){
-                totalTime += track.duration_ms;
-            });
-
-            return totalTime;
-        }
     },
     methods: {
         getAlbumDetails() {
@@ -147,8 +113,8 @@ export default {
             })
             .then(res => {
                 //save album informations to component data, mark album data as loaded
-                this.details.popularity = res.data.popularity.toString();
-                this.details.tracks = res.data.tracks.items;
+                this.popularity = res.data.popularity.toString();
+                this.tracks = res.data.tracks.items;
 
                 this.albumDetailsLoaded = true;
 
@@ -159,172 +125,95 @@ export default {
                     location.reload();
                 } 
             })
-
-        },
-        showOrHideDetails() {
-            //show/hide details when More information headed is clicked
-            this.displayDetails = !this.displayDetails;
-        },
-        msToMinAndSec(ms) {
-            //change time in millis to minutes:seconds format
-            let min = Math.floor(ms / 60000);
-            let sec = ((ms % 60000) / 1000).toFixed(0);
-            return min + ":" + (sec < 10 ? '0' : '') + sec;
-        },
-        playPreview(e) {
-            //stop currently played preview, play the new preview audio and mark the play button
-            const audioWrapper = e.target.parentNode;
-            const newPreview = audioWrapper.querySelector("audio");
-            const playBtn = audioWrapper.querySelector(".listItem__play-btn");
-
-            if(this.currentPreview !== null && this.currentPreviewPlayBtn !== null) {
-                this.currentPreview.pause();
-                this.currentPreviewPlayBtn.style.backgroundColor = "";
-            }
-
-            playBtn.style.backgroundColor = "#3a38d2";
-
-            //the spotify preview lasts 30 sec 
-            setTimeout(() => {
-                playBtn.style.backgroundColor = "";
-            }, 30000);
-
-            this.currentPreview = newPreview;
-            this.currentPreviewPlayBtn = playBtn;
-            newPreview.play();
-        },
-        pausePreview(e) {
-            //pause preview audio and unmark the play button;
-            if(this.currentPreview !== null && this.currentPreviewPlayBtn !== null) {
-                this.currentPreview.pause();
-                this.currentPreviewPlayBtn.style.backgroundColor = "";
-            }
-        },
+        }
     }
 }
 </script>
 
-
 <style lang="scss" scoped>
 
-    .listItem__wrapper {
-        width: 100%;
-        margin: 20px 0 0 0;
-        padding: 0 0 20px 0;
-        border-bottom: 1px solid gray;
-        display: flex;
-        align-content: center;
+    .listItem{
 
-        @media (max-width: 600px){
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-    }
-
-    .listItem__image-wrapper {
-        max-width: 220px;
-        max-height: 220px;
-        margin: 0 20px 0 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        @media (max-width: 600px){
-            margin: 0 0 20px 0;
-        }
-    }
-
-    .listItem__image {
-        max-width: 220px;
-        max-height: 220px;
-    }
-
-    .listItem__album-name {
-        @media (max-width: 600px){
-            text-align: center;
-        }
-    }
-
-    .listItem__info {
-        list-style: none;
-        @media (max-width: 600px){
-            text-align: center;
-        }
-    }
-
-    .listItem__details-header {
-        margin: 25px 0 0 0;
-        font-size: 18px;
-        color: #3a38d2;
-        cursor: pointer;
-
-        &:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 600px){
-            text-align: center;
-        }
-    }
-
-    .listItem__details {
-        list-style: none;
-        @media (max-width: 600px){
-            text-align: center;
-        }
-    }
-
-    .listItem__tracks-header {
-        font-size: 18px;
-        @media (max-width: 600px){
-            text-align: center;
-        }
-    }
-
-    .listItem__tracks-list {
-        list-style: none;
-
-        li {
+        &__wrapper {
+            width: 100%;
+            margin: 20px 0 0 0;
+            padding: 0 0 20px 0;
+            border-bottom: 1px solid gray;
             display: flex;
-            flex-wrap: wrap;
-            align-items: flex-start;
-            flex-direction: column;
-            justify-content: flex-start;
+            align-content: center;
 
             @media (max-width: 600px){
+                flex-direction: column;
+                justify-content: center;
                 align-items: center;
             }
         }
 
-        span {
-            margin-left: 5px;
-            font-size: 13px;
-            font-style: italic;
+        &__image-wrapper {
+            max-width: 220px;
+            max-height: 220px;
+            margin: 0 20px 0 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            @media (max-width: 600px){
+                margin: 0 0 20px 0;
+            }
+        }
+
+        &__image {
+            max-width: 220px;
+            max-height: 220px;
+        }
+
+        &__album-name {
+            @media (max-width: 600px){
+                text-align: center;
+            }
+        }
+
+        &__info {
+            list-style: none;
+            @media (max-width: 600px){
+                text-align: center;
+            }
+        }
+
+        &__details-header {
+            width: 175px;
+            margin: 15px 0 0 0;
+            padding: 10px 30px 10px 5px; 
+            font-size: 18px;
+            color: #3a38d2;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+
+            @media all and (min-width: 1024px){
+                &:hover {
+                    text-decoration: underline;
+                }
+            }
+            @media (max-width: 600px){
+                text-align: center;
+            }
+        }
+
+        &__header-arrow {
+            width: 12px;
+            height: 12px;
+            border-bottom: 2px solid #3a38d2;
+            border-left: 2px solid #3a38d2;
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            transform: translateY(-65%) rotate(-45deg);
+            transition: transform 0.3s ease-in;
         }
     }
 
-    .listItem__play-btn,
-    .listItem__pause-btn {
-        width: 44px;
-        height: 44px;
-        display: inline-block;
-        border-radius: 50%;
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-size: 60%;
-
-        &:hover {
-            background-color: #3a38d2;
-        }
+    .open {
+        transform: translateY(-40%) rotate(-225deg);
     }
-
-    .listItem__play-btn {
-        background-image: url("../../assets/play.svg")
-    }
-
-    .listItem__pause-btn {
-        background-image: url("../../assets/pause.svg")
-    }
-
 </style>

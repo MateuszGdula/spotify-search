@@ -1,24 +1,22 @@
 <template>
 
-    <form class="form-albums" @submit.stop.prevent="sendRequest" ref="form">
+    <form class="form__wrapper" @submit.stop.prevent="sendRequest" ref="form">
         
         <div class="input-group">
-            <span class="input-group-addon">Album:</span>
-            <input type="text" class="form-input" placeholder="..." required v-model="state.userText">
-            <button class="btn btn-primary input-group-btn">
+            <input type="text" class="form-input" placeholder="Enter album or artist name" required v-model="state.userText">
+            <button class="btn btn-primary input-group-btn form__button">
                 Search
             </button>
         </div>
 
-        <div class="form-group order-by">
+        <div class="form-group form__order-by">
             <span>Order by:</span>
-            <select class="form-select order-by__select" v-model="state.order" @change="sortAlbums">
+            <select class="form-select form__select" v-model="state.order" @change="sortAlbums">
                 <option value="bestMatch">best match</option>
                 <option value="name">album name</option>
                 <option value="date">release date</option>
             </select>
         </div>
-
     </form>
 </template>
 
@@ -48,30 +46,34 @@ export default {
         }
     },
 }
-
 </script>
 
 <style lang="scss" scoped>
 
-    .form-albums {
-        padding: 10px 0;
-        border-bottom: 1px solid gray;
-    }
+    .form {
+        
+        &__wrapper {
+            padding: 10px 0;
+            border-bottom: 1px solid gray;
+        }
 
-    .order-by {
-        max-width: 280px;
-        margin: 10px 0 0 auto;
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
+        &__button {
+            width: 100px;
+        }
 
-        span {
-            width: 80px;
+        &__order-by {
+            max-width: 280px;
+            margin: 10px 0 0 auto;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            span {
+                width: 80px;
+            }
+        }
+
+        &__select {
+            max-width: 130px;
         }
     }
-
-    .order-by__select {
-        max-width: 200px;
-    }
-
 </style>

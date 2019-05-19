@@ -8,7 +8,8 @@ const getInitialState = ()  => {
         order: "bestMatch",
         albums: [],
         renderedAlbums: [],
-        token: getCookie('accessToken') !== "undefined" ? getCookie('accessToken') : ""
+        token: getCookie('accessToken') !== "undefined" ? getCookie('accessToken') : "",
+        displayRedirection: false
     }  
 }
 
@@ -17,10 +18,8 @@ const GlobalStore = {
     state: getInitialState(),
 
     getAuthorization() {
-
         //if token is taken from cookies the code will not run
         if(!this.state.token){
-
             //get the value of token from hash and save it to a cookie
             this.state.token = window.location.hash
                             .substring(1)
@@ -34,7 +33,8 @@ const GlobalStore = {
             
             window.location.hash = '';
 
-            // If there is no token in the global store (empty string) redirect user to Spotify authorization
+            /* If there is no token in the global store (empty string) => display info
+            pop-up and redirect user to Spotify authorization */
             if (!this.state.token) {
 
                 const endpoint = 'https://accounts.spotify.com/authorize';
@@ -44,7 +44,11 @@ const GlobalStore = {
                                 ? 'http://localhost:8080'
                                 : 'https://spotify-albums-search-a69bf.firebaseapp.com';
 
-                window.location = `${endpoint}?client_id=${clientId}&redirect_uri=${redirect}&response_type=token`;
+                this.state.displayRedirection = true;
+
+                setTimeout(() => {
+                    window.location = `${endpoint}?client_id=${clientId}&redirect_uri=${redirect}&response_type=token`;
+                }, 2000);
             }
         }
     },
@@ -55,7 +59,7 @@ const GlobalStore = {
 
         this.state.isLoading = true;
 
-        //send request for albums list
+        //send request for albums list to spotify API
         Axios({
             method: 'get',
             url: requestURL,
@@ -99,7 +103,7 @@ const GlobalStore = {
 
     },
     renderAlbums() {
-        //copy first 10 items from the albums array to the rendered albums array end
+        //copy 10 items from the albums array to the rendered albums array end
         this.state.renderedAlbums = this.state.renderedAlbums
                                     .concat(this.state.albums.slice(this.state.renderedAlbums.length, this.state.renderedAlbums.length +10));
     },
@@ -136,7 +140,7 @@ const GlobalStore = {
 
         }
 
-        this.renderAlbums(10);
+        this.renderAlbums();
     }
 }
 
